@@ -97,6 +97,27 @@ namespace AprioriAlgorithm
             return C;
         }
 
+        public static void writeFile(string filePath, List<item> F, int n, bool isAppend)
+        {
+            using (StreamWriter writetext = new StreamWriter(filePath, isAppend))
+            {
+                if (F.Count > 0)
+                {
+                    writetext.WriteLine(F.Count);
+                    for (int i = 0; i < F.Count; i++)
+                    {
+                        float sup = (float)F[i].count / n;
+                        string itemset = "";
+                        for (int j = 0; j < F[i].itemset.Count; j++)
+                        {
+                            itemset += " " + F[i].itemset[j];
+                        }
+                        writetext.WriteLine(sup.ToString("0.00") + itemset);
+                    }
+                }
+            }
+        }
+
         static void Main(string[] args)
         {
             float minsupp = (float)0.2;
@@ -104,18 +125,17 @@ namespace AprioriAlgorithm
             string[] headerTitle = foodMart[0].Split(',');
             List<item> C = initPass(foodMart);
             List<item> F = createF(foodMart, C, minsupp);
+            writeFile("./../../FI.txt", F, foodMart.Count - 1, false);
             List<item> Fk = F;
 
             int k = 2;
             do
             {
                 C = candidateGen(Fk);
-                //Console.WriteLine("Ck {0}", k);
 
                 for (int i = 1; i < foodMart.Count; i++)
                 {
                     string[] subItem = foodMart[i].Split(',');
-                    //Console.WriteLine("subItem {0}", i);
 
                     for (int j = 0; j < C.Count; j++)
                     {
@@ -138,6 +158,7 @@ namespace AprioriAlgorithm
                 }
 
                 Fk = createF(foodMart, C, minsupp);
+                writeFile("./../../FI.txt", Fk, foodMart.Count - 1, true);
                 F.AddRange(Fk);
                 k++;
             } while (Fk.Count > 0);
@@ -151,50 +172,6 @@ namespace AprioriAlgorithm
                 }
                 Console.WriteLine("\ncount: {0}\n", F[i].count);
             }
-        }
-
-        public static List<item> createHeaderTable(List<string> foodMart, float minsup)
-        {
-            string[] item = foodMart[0].Split(',');
-
-            List<item> headerTable = new List<item>();
-
-            for (int i = 0; i < item.Count(); i++)
-            {
-                Console.WriteLine(item[i]);
-                item it = new item();
-                it.itemset.Add(item[i]);
-                it.count = 0;
-                headerTable.Add(it);
-            }
-
-            for (int i = 1; i < foodMart.Count; i++)
-            {
-                string[] subItem = foodMart[i].Split(',');
-
-                for (int j = 0; j < subItem.Count(); j++)
-                {
-                    if (subItem[j] == "1")
-                    {
-                        headerTable[j].count++;
-                    }
-                }
-            }
-
-            int index = 0;
-            while (index < headerTable.Count)
-            {
-                if ((float)headerTable[index].count / (foodMart.Count() - 1) < minsup)
-                {
-                    headerTable.RemoveAt(index);
-                }
-                else
-                {
-                    index++;
-                }
-            }
-
-            return headerTable;
         }
 
         public static List<item> initPass(List<string> foodMart)
@@ -243,7 +220,6 @@ namespace AprioriAlgorithm
                     index++;
                 }
             }
-
             return F;
         }
     }
