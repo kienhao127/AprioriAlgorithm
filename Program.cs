@@ -37,7 +37,7 @@ namespace AprioriAlgorithm
 
             for (int i = 0; i < F.Count; i++)
             {
-                for (int j = 1; j < F.Count; j++)
+                for (int j = i + 1; j < F.Count; j++)
                 {
                     if (!F[i].itemset[len].Equals(F[j].itemset[len]))
                     {
