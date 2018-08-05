@@ -43,7 +43,7 @@ namespace AprioriAlgorithm
                     {
                         if (subset > 1)
                         {
-                            for (int iF = 0; iF <= len; iF++)
+                            for (int iF = 0; iF < len; iF++)
                             {
                                 if (!F[i].itemset[iF].Equals(F[j].itemset[iF]))
                                 {
@@ -102,7 +102,7 @@ namespace AprioriAlgorithm
             List<item> headerTable = createHeaderTable(foodMart, minsup);
 
             headerTable = candidateGen(headerTable);
-
+            headerTable = candidateGen(headerTable);
             //de xem ket qua C1
             for (int i = 0; i < headerTable.Count(); i++)
             {
@@ -139,11 +139,16 @@ namespace AprioriAlgorithm
                 }
             }
 
-            for (int i = 0; i < headerTable.Count; i++)
+            int index = 0;
+            while (index < headerTable.Count)
             {
-                if ((float)headerTable[i].count/ (foodMart.Count() -1) < minsup)
+                if ((float)headerTable[index].count / (foodMart.Count() - 1) < minsup)
                 {
-                    headerTable.RemoveAt(i);
+                    headerTable.RemoveAt(index);
+                } 
+                else
+                {
+                    index++;
                 }
             }
 
