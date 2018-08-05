@@ -109,7 +109,7 @@ namespace AprioriAlgorithm
             int k = 2;
             do
             {
-                C = candidateGen(F);
+                C = candidateGen(Fk);
                 //Console.WriteLine("Ck {0}", k);
 
                 for (int i = 1; i < foodMart.Count; i++)
@@ -144,12 +144,12 @@ namespace AprioriAlgorithm
 
             for (int i = 0; i < F.Count; i++)
             {
-                Console.WriteLine("itemset: ");
+                Console.Write("itemset: ");
                 for (int j = 0; j < F[i].itemset.Count; j++)
                 {
-                    Console.Write("{0}", F[i].itemset[j]);
+                    Console.Write("{0} ", F[i].itemset[j]);
                 }
-                Console.WriteLine("count: {0}", F[i].count);
+                Console.WriteLine("\ncount: {0}\n", F[i].count);
             }
         }
 
