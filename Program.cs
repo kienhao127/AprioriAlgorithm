@@ -26,6 +26,48 @@ namespace AprioriAlgorithm
             return lines;
         }
 
+        public static List<item> candidateGen(List<item> F)
+        {
+            int subset = F[0].itemset.Count;
+
+            List<item> C = new List<item>();
+
+            for (int i = 0; i < F.Count; i++)
+            {
+                for (int j = 1; j < F.Count; j++)
+                {
+                    for (int iF = 0; iF < F[i].itemset.Count - 1; iF++)
+                    {
+                        if (!F[i].itemset[iF].Equals(F[j].itemset[iF]))
+                        {
+                            break;
+                        }
+                        int len = F[i].itemset.Count - 1;
+                        if (!F[i].itemset[len].Equals(F[j].itemset[len]))
+                        {
+                            item c = F[i];
+                            c.itemset.Add(F[j].itemset[len]);
+                            c.count = 0;
+                            C.Add(c);
+                            for (int ic = 0; ic < c.itemset.Count; ic++)
+                            {
+                                item t = c;
+                                t.itemset.RemoveAt(ic);
+                                for (int iF1 = 0; iF1 < F.Count; i++)
+                                {
+                                    if (!F[i].itemset.Equals(t.itemset))
+                                    {
+                                        C.Remove(c);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return C;
+        }
+
         static void Main(string[] args)
         {
             List<string> foodMart = loadCsvFile("./../../FoodMart.csv");
