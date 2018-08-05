@@ -32,34 +32,60 @@ namespace AprioriAlgorithm
 
             List<item> C = new List<item>();
 
+            bool canCreate = true;
+            int len = F[0].itemset.Count - 1;
+
             for (int i = 0; i < F.Count; i++)
             {
                 for (int j = 1; j < F.Count; j++)
                 {
-                    for (int iF = 0; iF < F[i].itemset.Count - 1; iF++)
+                    if (!F[i].itemset[len].Equals(F[j].itemset[len]))
                     {
-                        if (!F[i].itemset[iF].Equals(F[j].itemset[iF]))
+                        if (subset > 1)
                         {
-                            break;
+                            for (int iF = 0; iF <= len; iF++)
+                            {
+                                if (!F[i].itemset[iF].Equals(F[j].itemset[iF]))
+                                {
+                                    canCreate = false;
+                                    break;
+                                }
+                                canCreate = true;
+                            }
                         }
-                        int len = F[i].itemset.Count - 1;
-                        if (!F[i].itemset[len].Equals(F[j].itemset[len]))
+
+                        if (canCreate)
                         {
-                            item c = F[i];
+                            item c = new item();
+                            c.itemset.AddRange(F[i].itemset.GetRange(0, F[i].itemset.Count));
                             c.itemset.Add(F[j].itemset[len]);
                             c.count = 0;
                             C.Add(c);
+                            bool isRemove = true;
                             for (int ic = 0; ic < c.itemset.Count; ic++)
                             {
-                                item t = c;
+                                item t = new item();
+                                t.itemset = c.itemset.GetRange(0, c.itemset.Count);
                                 t.itemset.RemoveAt(ic);
-                                for (int iF1 = 0; iF1 < F.Count; i++)
+                                
+                                for (int iF1 = 0; iF1 < F.Count; iF1++)
                                 {
-                                    if (!F[i].itemset.Equals(t.itemset))
+                                    for (int ii = 0; ii < F[iF1].itemset.Count; ii++)
                                     {
-                                        C.Remove(c);
+                                        for (int jj = 0; jj < t.itemset.Count; jj++)
+                                        {
+                                            if (!F[iF1].itemset[ii].Equals(t.itemset[jj]))
+                                            {
+                                                break;
+                                            }
+                                            isRemove = false;
+                                        }      
                                     }
                                 }
+                            }
+                            if (isRemove)
+                            {
+                                C.Remove(c);
                             }
                         }
                     }
@@ -70,9 +96,12 @@ namespace AprioriAlgorithm
 
         static void Main(string[] args)
         {
+            float minsup = (float)0.1;
             List<string> foodMart = loadCsvFile("./../../FoodMart.csv");
 
-            List<item> headerTable = createHeaderTable(foodMart);
+            List<item> headerTable = createHeaderTable(foodMart, minsup);
+
+            headerTable = candidateGen(headerTable);
 
             //de xem ket qua C1
             for (int i = 0; i < headerTable.Count(); i++)
@@ -82,7 +111,7 @@ namespace AprioriAlgorithm
             }
         }
 
-        public static List<item> createHeaderTable(List<string> foodMart)
+        public static List<item> createHeaderTable(List<string> foodMart, float minsup)
         {
             string[] item = foodMart[0].Split(',');
 
@@ -107,6 +136,14 @@ namespace AprioriAlgorithm
                     {
                         headerTable[j].count++;
                     }
+                }
+            }
+
+            for (int i = 0; i < headerTable.Count; i++)
+            {
+                if ((float)headerTable[i].count/ (foodMart.Count() -1) < minsup)
+                {
+                    headerTable.RemoveAt(i);
                 }
             }
 
