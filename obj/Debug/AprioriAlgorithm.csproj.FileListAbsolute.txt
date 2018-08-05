@@ -1,0 +1,6 @@
+C:\New folder\KTDL\Apriori\AprioriAlgorithm\AprioriAlgorithm\bin\Debug\AprioriAlgorithm.exe.config
+C:\New folder\KTDL\Apriori\AprioriAlgorithm\AprioriAlgorithm\bin\Debug\AprioriAlgorithm.exe
+C:\New folder\KTDL\Apriori\AprioriAlgorithm\AprioriAlgorithm\bin\Debug\AprioriAlgorithm.pdb
+C:\New folder\KTDL\Apriori\AprioriAlgorithm\AprioriAlgorithm\obj\Debug\AprioriAlgorithm.csprojResolveAssemblyReference.cache
+C:\New folder\KTDL\Apriori\AprioriAlgorithm\AprioriAlgorithm\obj\Debug\AprioriAlgorithm.exe
+C:\New folder\KTDL\Apriori\AprioriAlgorithm\AprioriAlgorithm\obj\Debug\AprioriAlgorithm.pdb
