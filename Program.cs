@@ -118,62 +118,6 @@ namespace AprioriAlgorithm
             }
         }
 
-        static void Main(string[] args)
-        {
-            float minsupp = (float)0.2;
-            List<string> foodMart = loadCsvFile("./../../FoodMart.csv");
-            string[] headerTitle = foodMart[0].Split(',');
-            List<item> C = initPass(foodMart);
-            List<item> F = createF(foodMart, C, minsupp);
-            writeFile("./../../FI.txt", F, foodMart.Count - 1, false);
-            List<item> Fk = F;
-
-            int k = 2;
-            do
-            {
-                C = candidateGen(Fk);
-
-                for (int i = 1; i < foodMart.Count; i++)
-                {
-                    string[] subItem = foodMart[i].Split(',');
-
-                    for (int j = 0; j < C.Count; j++)
-                    {
-                        int subCount = 0;
-                        for (int t = 0; t < C[j].itemset.Count; t++)
-                        {
-                            for (int s = 0; s < subItem.Count(); s++)
-                            {
-                                if (C[j].itemset[t] == headerTitle[s] && subItem[s] == "1")
-                                {
-                                    subCount++;
-                                }
-                            }
-                        }
-                        if (subCount == k)
-                        {
-                            C[j].count++;
-                        }
-                    }
-                }
-
-                Fk = createF(foodMart, C, minsupp);
-                writeFile("./../../FI.txt", Fk, foodMart.Count - 1, true);
-                F.AddRange(Fk);
-                k++;
-            } while (Fk.Count > 0);
-
-            for (int i = 0; i < F.Count; i++)
-            {
-                Console.Write("itemset: ");
-                for (int j = 0; j < F[i].itemset.Count; j++)
-                {
-                    Console.Write("{0} ", F[i].itemset[j]);
-                }
-                Console.WriteLine("\ncount: {0}\n", F[i].count);
-            }
-        }
-
         public static List<item> initPass(List<string> foodMart)
         {
             string[] item = foodMart[0].Split(',');
@@ -182,7 +126,7 @@ namespace AprioriAlgorithm
 
             for (int i = 0; i < item.Count(); i++)
             {
-                Console.WriteLine(item[i]);
+                //Console.WriteLine(item[i]);
                 item it = new item();
                 it.itemset.Add(item[i]);
                 it.count = 0;
@@ -221,6 +165,229 @@ namespace AprioriAlgorithm
                 }
             }
             return F;
+        }
+
+        public static void genRules(List<item> FRoot, List<item> F, float minconf)
+        {
+            bool isAppend = false;
+            for (int i = 0; i < F.Count; i++)
+            {
+                if (F[i].itemset.Count < 2)
+                {
+                    continue;
+                }
+                List<item> H = new List<item>();
+                for (int j = 0; j < F[i].itemset.Count; j++)
+                {
+                    item F_b = new item();
+                    F_b.itemset.Add(F[i].itemset[j]);
+                    item F_a = new item();
+                    F_a.itemset = F[i].itemset.GetRange(0, j);
+                    F_a.itemset.AddRange(F[i].itemset.GetRange(j+1, F[i].itemset.Count -1 - j));
+                    float conf = (float)F[i].count / getItemCount(FRoot, F_a);
+                    if (conf >= minconf)
+                    {
+                        H.Add(F_b);
+                        //printRuleToScreen(F_a, F_b, conf);
+                        writeARFile("./../../AR.txt", F_a, F_b, conf, isAppend);
+                        isAppend = true;
+                    }
+                }
+                ap_genRules(FRoot, F[i], H, F[i].itemset.Count, 1, minconf);
+            }
+        }
+
+        public static void ap_genRules(List<item> FRoot, item Fk, List<item> H, int k, int m, float minconf)
+        {
+            List<item> Hm = new List<item>();
+            if ((k > m + 1) && (H.Count > 0))
+            {
+                Hm = candidateGen(H);
+                int i = 0;
+                while (i < Hm.Count)
+                {
+                    item F_b = Hm[i];
+                    item F_a = new item();
+                    for (int z = 0; z < Fk.itemset.Count; z++)
+                    {
+                        for (int x = 0; x < F_b.itemset.Count; x++)
+                        {
+                            if (Fk.itemset[z] == F_b.itemset[x])
+                            {
+                                break;
+                            }
+                            if (x == F_b.itemset.Count - 1)
+                            {
+                                F_a.itemset.Add(Fk.itemset[z]);
+                            }
+                        }
+                    }
+                    float conf = (float)Fk.count / getItemCount(FRoot, F_a);
+                    if (conf >= minconf)
+                    {
+                        //printRuleToScreen(F_a, F_b, conf);
+                        writeARFile("./../../AR.txt", F_a, F_b, conf, true);
+                        i++;
+                    }
+                    else
+                    {
+                        Hm.RemoveAt(i);
+                    }
+                }
+                ap_genRules(FRoot, Fk, Hm, k, m + 1, minconf);
+            }
+        }
+
+        public static int getItemCount(List<item> FRoot, item item)
+        {
+            for (int i = 0; i < FRoot.Count; i++)
+            {
+                if (FRoot[i].itemset.Count == item.itemset.Count)
+                {
+                    if (is2ItemEquals(FRoot[i], item))
+                    {
+                        return FRoot[i].count;
+                    }
+                }
+            }
+            return -1;
+        }
+
+        public static bool is2ItemEquals(item item1, item item2)
+        {
+            for (int i = 0; i < item2.itemset.Count; i++)
+            {
+                if (!(item1.itemset[i] == item2.itemset[i]))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public static void printRuleToScreen(item F_a, item F_b, float conf)
+        {
+            Console.Write(conf.ToString("0.00") + " ");
+            for (int a = 0; a < F_a.itemset.Count; a++)
+            {
+                Console.Write("{0}", F_a.itemset[a]);
+                if (a < F_a.itemset.Count - 1)
+                {
+                    Console.Write(",");
+                }
+            }
+            Console.Write("-> ");
+            for (int b = 0; b < F_b.itemset.Count; b++)
+            {
+                Console.Write("{0}", F_b.itemset[b]);
+                if (b < F_b.itemset.Count - 1)
+                {
+                    Console.Write(",");
+                }
+            }
+            Console.WriteLine("");
+        }
+
+        public static void writeARFile(string filePath, item F_a, item F_b, float conf, bool isAppend)
+        {
+            using (StreamWriter writetext = new StreamWriter(filePath, isAppend))
+            {
+                writetext.Write(conf.ToString("0.00") + " ");
+                for (int a = 0; a < F_a.itemset.Count; a++)
+                {
+                    writetext.Write("{0}", F_a.itemset[a]);
+                    if (a < F_a.itemset.Count - 1)
+                    {
+                        writetext.Write(",");
+                    }
+                }
+                writetext.Write("-> ");
+                for (int b = 0; b < F_b.itemset.Count; b++)
+                {
+                    writetext.Write("{0}", F_b.itemset[b]);
+                    if (b < F_b.itemset.Count - 1)
+                    {
+                        writetext.Write(",");
+                    }
+                }
+                writetext.WriteLine("");
+            }
+        }
+
+        static void Main(string[] args)
+        {
+            float minsupp = (float)0.2;
+            float minconf = (float)0.4;
+
+            //Đọc file CSV
+            Console.WriteLine("Doc file csv ...");
+            List<string> foodMart = loadCsvFile("./../../FoodMart.csv");
+            string[] headerTitle = foodMart[0].Split(',');
+
+            //Tạo bảng C1 (đếm số lần xuất hiện của từng hạng mục)
+            Console.WriteLine("Dem so lan xuat hien cua tung hang muc...");
+            List<item> C = initPass(foodMart);
+
+            //Tạo tập phổ biến (Xuất file FI)
+            Console.WriteLine("Dang xuat file FI.txt ...");
+            List<item> F = createF(foodMart, C, minsupp);
+            writeFile("./../../FI.txt", F, foodMart.Count - 1, false);
+            List<item> Fk = F;
+
+            int k = 2;
+            if (F.Count == 0)
+            {
+                return;
+            }
+            do
+            {
+                C = candidateGen(Fk);
+
+                for (int i = 1; i < foodMart.Count; i++)
+                {
+                    string[] subItem = foodMart[i].Split(',');
+
+                    for (int j = 0; j < C.Count; j++)
+                    {
+                        int subCount = 0;
+                        for (int t = 0; t < C[j].itemset.Count; t++)
+                        {
+                            for (int s = 0; s < subItem.Count(); s++)
+                            {
+                                if (C[j].itemset[t] == headerTitle[s] && subItem[s] == "1")
+                                {
+                                    subCount++;
+                                }
+                            }
+                        }
+                        if (subCount == k)
+                        {
+                            C[j].count++;
+                        }
+                    }
+                }
+
+                Fk = createF(foodMart, C, minsupp);
+                writeFile("./../../FI.txt", Fk, foodMart.Count - 1, true);
+                F.AddRange(Fk);
+
+                k++;
+            } while (Fk.Count > 0);
+
+            //for (int i = 0; i < F.Count; i++)
+            //{
+            //    Console.Write("itemset: ");
+            //    for (int j = 0; j < F[i].itemset.Count; j++)
+            //    {
+            //        Console.Write("{0} ", F[i].itemset[j]);
+            //    }
+            //    Console.WriteLine("\ncount: {0}\n", F[i].count);
+            //}
+
+            //Tạo luật kết hợp (Tạo file AR)
+            Console.WriteLine("Dang xuat file AR.txt ...");
+            genRules(F, F, minconf);
+            Console.WriteLine("Hoan tat...");
         }
     }
 }
